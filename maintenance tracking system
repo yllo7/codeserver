@@ -1,0 +1,78 @@
+import sqlite3
+
+# Create or connect to the SQLite database
+conn = sqlite3.connect('maintenance.db')
+cursor = conn.cursor()
+
+# Create the maintenance table if it doesn't exist
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS maintenance (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    equipment TEXT NOT NULL,
+    activity TEXT NOT NULL,
+    date TEXT NOT NULL
+)
+''')
+conn.commit()
+
+def log_maintenance():
+    equipment = input("Enter equipment name: ")
+    activity = input("Enter maintenance activity: ")
+    date = input("Enter date (YYYY-MM-DD): ")
+    
+    cursor.execute('''
+    INSERT INTO maintenance (equipment, activity, date)
+    VALUES (?, ?, ?)
+    ''', (equipment, activity, date))
+    conn.commit()
+    print("Maintenance activity logged successfully.")
+
+def view_maintenance():
+    cursor.execute('SELECT * FROM maintenance')
+    records = cursor.fetchall()
+    print("\nLogged Maintenance Activities:")
+    print("ID | Equipment | Activity | Date")
+    print("-" * 40)
+    for record in records:
+        print(f"{record[0]} | {record[1]} | {record[2]} | {record[3]}")
+
+def display_metrics():
+    cursor.execute('SELECT equipment, COUNT(*) FROM maintenance GROUP BY equipment')
+    data = cursor.fetchall()
+
+    if not data:
+        print("No data to display.")
+        return
+
+    print("\nMaintenance Metrics:")
+    print("Equipment | Number of Activities")
+    print("-" * 30)
+    for item in data:
+        print(f"{item[0]} | {item[1]}")
+
+def main():
+    while True:
+        print("\nMaintenance Tracking System")
+        print("1. Log Maintenance Activity")
+        print("2. View Logged Activities")
+        print("3. Display Maintenance Metrics")
+        print("4. Exit")
+        choice = input("Enter your choice: ")
+        
+        if choice == '1':
+            log_maintenance()
+        elif choice == '2':
+            view_maintenance()
+        elif choice == '3':
+            display_metrics()
+        elif choice == '4':
+            print("Exiting program.")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == '__main__':
+    main()
+
+# Close the database connection when the program ends
+conn.close()
